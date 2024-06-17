@@ -1,20 +1,22 @@
 #!/usr/bin/python3
-"""Module for Place class"""
+"""Module for Review class"""
 
 from models.base_model import BaseModel
 
 
-class Place(BaseModel):
-    """Place class that inherits from BaseModel."""
+class Review(BaseModel):
+    """Defines a class Review that inherits from BaseModel"""
 
-    city_id = ""
-    user_id = ""
-    name = ""
-    description = ""
-    number_rooms = 0
-    number_bathrooms = 0
-    max_guest = 0
-    price_by_night = 0
-    latitude = 0.0
-    longitude = 0.0
-    amenity_ids = []
+    def __init__(self, user_id, place_id, rating, comment):
+        """
+        Initializes the class Review with the following parameters:
+        :param user_id: UUID - Unique ID of an User.
+        :param place_id: UUID - Unique ID of a Place.
+        :param rating: int - rating given to a Place by an User.
+        :param comment: str - comment given to a Place by an User.
+        """
+        super().__init__()
+        self.user_id = user_id
+        self.place_id = place_id
+        self.rating = rating
+        self.comment = comment
