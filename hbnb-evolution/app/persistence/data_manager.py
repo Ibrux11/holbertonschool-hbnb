@@ -70,34 +70,6 @@ class Listing:
             'owner_id': self.owner_id
         }
 
-class User:
-    def __init__(self, id, username, email):
-        self.id = id
-        self.username = username
-        self.email = email
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email
-        }
-
-class Listing:
-    def __init__(self, id, title, description, owner_id):
-        self.id = id
-        self.title = title
-        self.description = description
-        self.owner_id = owner_id
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'owner_id': self.owner_id
-        }
-
 if __name__ == "__main__":
     storage_file = 'data.json'
     data_manager = DataManager(storage_file)
