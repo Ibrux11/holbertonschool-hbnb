@@ -36,6 +36,6 @@ class Place:
         self.updated_at = datetime.now()  # Update timestamp
 
     def add_review(self, review: 'Review'):  # Use a string to reference the 'Review' type
-        """Adds a review to the place."""
+        """Ajoute une review."""
         self.reviews.append(review)
         self.updated_at = datetime.now()  # Update timestamp whenever a new review is added
