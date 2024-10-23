@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
-from app.models import User
+from app.models.user import User
+from app.persistence.repository import InMemoryRepository
 
 class HBnBFacade:
     def __init__(self):
-        self.user_repo = InMemoryRepository() 
+        self.user_repo = InMemoryRepository()
 
     def create_user(self, user_data):
         user = User(**user_data)
@@ -22,5 +23,5 @@ class HBnBFacade:
         if user:
             for key, value in user_data.items():
                 setattr(user, key, value)
-            self.user_repo.update(user)
+            self.user_repo.update(user, user_data)
         return user
