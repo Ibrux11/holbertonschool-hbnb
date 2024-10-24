@@ -39,3 +39,34 @@ class Place:
         """Ajoute une review."""
         self.reviews.append(review)
         self.updated_at = datetime.now()  # Update timestamp whenever a new review is added
+
+    # Validation du prix, de la latitude et de la longitude
+    @property
+    def price(self):
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        if value < 0:
+            raise ValueError("Le prix doit être un nombre non négatif")
+        self._price = value
+
+    @property
+    def latitude(self):
+        return self._latitude
+
+    @latitude.setter
+    def latitude(self, value):
+        if not (-90 <= value <= 90):
+            raise ValueError("La latitude doit être comprise entre -90 et 90")
+        self._latitude = value
+
+    @property
+    def longitude(self):
+        return self._longitude
+
+    @longitude.setter
+    def longitude(self, value):
+        if not (-180 <= value <= 180):
+            raise ValueError("La longitude doit être comprise entre -180 et 180")
+        self._longitude = value

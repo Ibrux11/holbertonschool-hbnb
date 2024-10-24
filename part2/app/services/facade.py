@@ -3,6 +3,8 @@
 from app.models.user import User
 from app.models.amenity import Amenity
 from app.persistence.repository import InMemoryRepository
+from app.models.place import Place
+
 
 class HBnBFacade:
     def __init__(self):
@@ -46,3 +48,19 @@ class HBnBFacade:
                 setattr(amenity, key, value)
             self.amenity_repo.update(amenity, amenity_data)
         return amenity
+
+    def create_place(self, place_data):
+        # Logic to create a place, including validation for price, latitude, and longitude
+        pass
+
+    def get_place(self, place_id):
+        # Logic to retrieve a place by ID, including associated owner and amenities
+        pass
+
+    def get_all_places(self):
+        # Logic to retrieve all places
+        pass
+
+    def update_place(self, place_id, place_data):
+        # Logic to update a place
+        pass
