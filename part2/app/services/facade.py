@@ -59,9 +59,13 @@ class HBnBFacade:
         return self.place_repo.get(place_id)
 
     def get_all_places(self):
-        # Logic to retrieve all places
-        pass
+        return self.place_repo.get_all()
 
     def update_place(self, place_id, place_data):
-        # Logic to update a place
-        pass
+        place = self.get_place(place_id)
+        if place:
+            # Mettre à jour les attributs du lieu avec les nouvelles données
+            for key, value in place_data.items():
+                setattr(place, key, value)
+            self.place_repo.update(place, place_data)
+        return place
