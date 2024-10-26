@@ -1,31 +1,27 @@
 #!/usr/bin/python3
 import uuid
 from datetime import datetime
-from user import User
-
+from app.models.user import User
+from app.models.review import Review
 
 class Place:
-    def __init__(self, title: str, price: float, latitude: float, longitude: float, owner: User, description: str = ""):
+    def __init__(self, title: str, price: float, latitude: float, longitude: float, user: User, amenities: list[str], description: str = ""):
         self.id = str(uuid.uuid4())  # Generate a unique identifier
         self.title = title
         self.description = description
         self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        self.owner = owner  # User instance
+        self.user = user  # User instance
+        self.amenities = amenities
+        self.reviews = []
         self.created_at = datetime.now()  # Timestamp for creation
         self.updated_at = datetime.now()  # Timestamp for updates
-        # Will hold a list of Amenity instances (many-to-many relationship)
-        self.amenities = []
-        # Will hold a list of Review instances (one-to-many relationship)
-        self.reviews = []
-
-        # Validation
         self.validate()
 
     def validate(self):
         if len(self.title) > 100:
-            raise ValueError("Title must not exceed 100 characters.")
+            raise ValueError("title must not exceed 100 characters.")
         if self.price <= 0:
             raise ValueError("Price must be a positive value.")
         if not (-90.0 <= self.latitude <= 90.0):
@@ -38,7 +34,7 @@ class Place:
             setattr(self, key, value)
         self.updated_at = datetime.now()  # Update timestamp
 
-    def add_review(self, review: 'Review'):  # Use a string to reference the 'Review' type
+    def add_review(self, review: Review):  # Use a string to reference the 'Review' type
         """Ajoute une review."""
         self.reviews.append(review)
         self.updated_at = datetime.now()  # Update timestamp whenever a new review is added
