@@ -25,7 +25,7 @@ place_model = api.model('Place', {
     'price': fields.Float(required=True, description='Price per night'),
     'latitude': fields.Float(required=True, description='Latitude of the place'),
     'longitude': fields.Float(required=True, description='Longitude of the place'),
-    'user': fields.String(required=True, description='ID of the owner'),
+    'owner_id': fields.String(required=True, description='ID of the owner'),  # Correction ici
     'amenities': fields.List(fields.String, required=True, description="List of amenities")
 })
 
@@ -40,20 +40,29 @@ class PlaceList(Resource):
     def post(self):
         """Register a new place"""
         place_data = api.payload
-        existing_place = facade.get_place(place_data['title'])
-        if existing_place:
-            return {'error': 'place exists already'}, 400
-        new_place = facade.create_place(place_data)
-        return {
-            'id' : new_place.id,
-            'title': new_place.title
+        try:
+            # Vérifiez si le lieu existe déjà
+            existing_place = facade.get_place(place_data['title'])
+            if existing_place:
+                return {'error': 'Place already exists'}, 400
+            
+            # Créez le nouvel endroit
+            new_place = facade.create_place(place_data)
+            return {
+                'id': new_place.id,
+                'title': new_place.title,
+                'description': new_place.description
             }, 201
+        except ValueError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'message': 'Internal Server Error'}, 500
 
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
-        return [{'title': places.title} for places in places], 200
+        return [{'id': place.id, 'title': place.title} for place in places], 200
 
 
 @api.route('/<place_id>')
@@ -64,8 +73,23 @@ class PlaceResource(Resource):
         """Get place details by ID"""
         place = facade.get_place(place_id)
         if not place:
-            return {'error': 'place not found'}, 404
-        return {'id': place.id, 'title': place.title}, 200
+            return {'error': 'Place not found'}, 404
+        return {
+            'id': place.id,
+            'title': place.title,
+            'description': place.description,
+            'latitude': place.latitude,
+            'longitude': place.longitude,
+            'owner': {
+                'id': place.owner_id,  # Assurez-vous que cette clé est correcte
+                'first_name': place.owner.first_name,
+                'last_name': place.owner.last_name,
+                'email': place.owner.email
+            },
+            'amenities': [
+                {'id': amenity.id, 'name': amenity.name} for amenity in place.amenities
+            ]
+        }, 200
 
     @api.expect(place_model)
     @api.response(200, 'Place updated successfully')
@@ -74,7 +98,16 @@ class PlaceResource(Resource):
     def put(self, place_id):
         """Update a place's information"""
         place_data = api.payload
-        updated_place = facade.update_place(place_id, place_data)
-        if not updated_place:
-            return {'error': 'place not found'}, 404
-        return {'id': updated_place.id, 'title': updated_place.title}, 200
+        try:
+            updated_place = facade.update_place(place_id, place_data)
+            if not updated_place:
+                return {'error': 'Place not found'}, 404
+            return {
+                'id': updated_place.id,
+                'title': updated_place.title,
+                'description': updated_place.description
+            }, 200
+        except ValueError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'message': 'Internal Server Error'}, 500
