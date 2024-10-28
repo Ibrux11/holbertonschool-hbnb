@@ -1,4 +1,4 @@
-__pycache_
+__pycache__
 *.pyc
 part2/app/api/v1/__pycache__/__init__.cpython-310.pyc
 part2/app/__pycache__/__init__.cpython-310.pyc
