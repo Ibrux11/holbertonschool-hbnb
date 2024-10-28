@@ -6,13 +6,21 @@ from app.models.place import Place
 from app.models.review import Review
 from app.persistence.repository import InMemoryRepository
 
-
 class HBnBFacade:
+    _instance = None  # Class-level variable to hold the singleton instance
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(HBnBFacade, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        self.user_repo = InMemoryRepository()
-        self.amenity_repo = InMemoryRepository()
-        self.place_repo = InMemoryRepository()
-        self.review_repo = InMemoryRepository()
+        if not hasattr(self, 'initialized'):  # Check if already initialized
+            self.user_repo = InMemoryRepository()
+            self.amenity_repo = InMemoryRepository()
+            self.place_repo = InMemoryRepository()
+            self.review_repo = InMemoryRepository()
+            self.initialized = True  # Set a flag indicating initialization
 
     def create_user(self, user_data):
         user = User(**user_data)
@@ -72,79 +80,49 @@ class HBnBFacade:
         return place
 
     def create_review(self, review_data):
-        # Validate the presence of user_id, place_id, and rating
-        user = User.query.get(review_data.get('user_id'))
-        place = Place.query.get(review_data.get('place_id'))
-        if not user or not place:
-            raise ValueError('Invalid user_id or place_id')
-
-        # Validate rating is between 1 and 5
-        if not (1 <= review_data['rating'] <= 5):
-            raise ValueError('Rating must be between 1 and 5')
-
-        # Create and save the review
-        review = Review(**review_data)
-        db.session.add(review)
-        db.session.commit()
-        return review
-
-    def get_review(self, review_id):
-        review = Review.query.get(review_id)
-        if not review:
-            raise ValueError('Review not found')
-        return review
-
-    def get_all_reviews(self):
-        return Review.query.all()
-
-    def get_reviews_by_place(self, place_id):
-        place = Place.query.get(place_id)
+        user_id = review_data.get('user_id')
+        user = self.get_user(user_id)
+        place_id = review_data.get('place_id')
+        place = self.get_place(place_id)
+        if not user:
+            raise ValueError("Invalid user ID")
         if not place:
-            raise ValueError('Place not found')
-        return place.reviews
-
-    def update_review(self, review_id, review_data):
-        review = Review.query.get(review_id)
-        if not review:
-            raise ValueError('Review not found')
-
-        if 'rating' in review_data and not (1 <= review_data['rating'] <= 5):
-            raise ValueError('Rating must be between 1 and 5')
-
-        for key, value in review_data.items():
-            setattr(review, key, value)
-        db.session.commit()
-        return review
-
-    def delete_review(self, review_id):
-        review = Review.query.get(review_id)
-        if not review:
-            raise ValueError('Review not found')
-        db.session.delete(review)
-        db.session.commit()
-
-'''def create_review(self, review_data):
-        review = Review(**review_data)
+            raise ValueError("Invalid place ID")
+        review = Review(
+            title=review_data.get('title', ""),
+            text=review_data['text'],
+            rating=review_data['rating'],
+            place_id=place_id,
+            user_id=user_id
+        )
         self.review_repo.add(review)
         return review
-
+    
     def get_review(self, review_id):
-        return self.review_repo.get(review_id)
+        review = self.review_repo.get(review_id)
+        if not review:
+            raise ValueError("Review not found")
+        return review
 
     def get_all_reviews(self):
         return self.review_repo.get_all()
 
     def get_reviews_by_place(self, place_id):
-        return [reviews for reviews in self.reviews if reviews.place.id == place_id]
+        return [review for review in self.review_repo.get_all() if review.place_id == place_id]
 
     def update_review(self, review_id, review_data):
         review = self.get_review(review_id)
-        if review:
-            for key, value in review_data.items():
-                setattr(review, key, value)
-            self.review_repo.update(review, review_data)
+        if not review:
+            raise ValueError("Review not found")
+        review.update(**review_data)
+        self.review_repo.update(review.id, review_data)
         return review
 
     def delete_review(self, review_id):
-            """Delete a review by its ID."""
-            return self.review_repo.delete(review_id)'''
+        if not self.review_repo.get(review_id):
+            raise ValueError("Review not found")
+        self.review_repo.delete(review_id)
+        return True
+
+# Create a single global instance of the HBnBFacade
+facade = HBnBFacade()

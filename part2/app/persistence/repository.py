@@ -33,9 +33,11 @@ class InMemoryRepository(Repository):
         self._storage = {}
 
     def add(self, obj):
+        obj.id = str(obj.id)  # Ensure ID is stored as a string
         self._storage[obj.id] = obj
 
     def get(self, obj_id):
+        obj_id = str(obj_id)  # Convert obj_id to string to match storage keys
         return self._storage.get(obj_id)
 
     def get_all(self):
