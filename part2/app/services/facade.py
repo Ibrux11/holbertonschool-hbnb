@@ -29,7 +29,7 @@ class HBnBFacade:
 
     def get_user(self, user_id):
         return self.user_repo.get(user_id)
-
+    
     def get_user_by_email(self, email):
         return self.user_repo.get_by_attribute('email', email)
 
@@ -40,7 +40,7 @@ class HBnBFacade:
                 setattr(user, key, value)
             self.user_repo.update(user, user_data)
         return user
-
+    
     def create_amenity(self, amenity_data):
         amenity = Amenity(**amenity_data)
         self.amenity_repo.add(amenity)
@@ -61,13 +61,29 @@ class HBnBFacade:
         return amenity
 
     def create_place(self, place_data):
-        place = Place(**place_data)
+        # Validation pour vérifier que le owner_id est un utilisateur valide
+        user = self.get_user(place_data['owner_id'])
+        if not user:
+            raise ValueError("Invalid owner_id; user does not exist.")
+
+        # Création de l'objet Place
+        place = Place(
+            title=place_data['title'],
+            description=place_data.get('description', ''),
+            price=place_data['price'],
+            latitude=place_data['latitude'],
+            longitude=place_data['longitude'],
+            user=user,
+            amenities=place_data.get('amenities', [])
+        )
+
+        # Enregistrement de la Place dans le dépôt
         self.place_repo.add(place)
         return place
 
     def get_place(self, place_id):
         return self.place_repo.get(place_id)
-
+    
     def get_all_places(self):
         return self.place_repo.get_all()
 
