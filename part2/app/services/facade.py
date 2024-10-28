@@ -130,8 +130,8 @@ class HBnBFacade:
         review = self.get_review(review_id)
         if not review:
             raise ValueError("Review not found")
-        review.update(**review_data)
-        self.review_repo.update(review.id, review_data)
+        review.update(**review_data)  # Update the review object
+        self.review_repo.update(review.id, review_data)  # Update in the repository
         return review
 
     def delete_review(self, review_id):
