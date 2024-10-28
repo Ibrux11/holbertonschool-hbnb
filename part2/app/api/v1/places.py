@@ -5,27 +5,14 @@ from app.services.facade import HBnBFacade
 
 api = Namespace('places', description='Place operations')
 
-# Define the models for related entities
-amenity_model = api.model('PlaceAmenity', {
-    'id': fields.String(description='Amenity ID'),
-    'name': fields.String(description='Name of the amenity')
-})
-
-user_model = api.model('PlaceUser', {
-    'id': fields.String(description='User ID'),
-    'first_name': fields.String(description='First name of the owner'),
-    'last_name': fields.String(description='Last name of the owner'),
-    'email': fields.String(description='Email of the owner')
-})
-
-# Define the place model for input validation and documentation
+# Modèles pour les entités associées
 place_model = api.model('Place', {
     'title': fields.String(required=True, description='Title of the place'),
     'description': fields.String(description='Description of the place'),
     'price': fields.Float(required=True, description='Price per night'),
     'latitude': fields.Float(required=True, description='Latitude of the place'),
     'longitude': fields.Float(required=True, description='Longitude of the place'),
-    'owner_id': fields.String(required=True, description='ID of the owner'),  # Correction ici
+    'owner_id': fields.String(required=True, description='ID of the owner'),
     'amenities': fields.List(fields.String, required=True, description="List of amenities")
 })
 
@@ -41,12 +28,7 @@ class PlaceList(Resource):
         """Register a new place"""
         place_data = api.payload
         try:
-            # Vérifiez si le lieu existe déjà
-            existing_place = facade.get_place(place_data['title'])
-            if existing_place:
-                return {'error': 'Place already exists'}, 400
-            
-            # Créez le nouvel endroit
+            # Création d'une nouvelle place
             new_place = facade.create_place(place_data)
             return {
                 'id': new_place.id,
@@ -56,6 +38,7 @@ class PlaceList(Resource):
         except ValueError as e:
             return {'error': str(e)}, 400
         except Exception as e:
+            print(f"Erreur serveur : {e}")  # Pour le débogage
             return {'message': 'Internal Server Error'}, 500
 
     @api.response(200, 'List of places retrieved successfully')
@@ -80,34 +63,6 @@ class PlaceResource(Resource):
             'description': place.description,
             'latitude': place.latitude,
             'longitude': place.longitude,
-            'owner': {
-                'id': place.owner_id,  # Assurez-vous que cette clé est correcte
-                'first_name': place.owner.first_name,
-                'last_name': place.owner.last_name,
-                'email': place.owner.email
-            },
-            'amenities': [
-                {'id': amenity.id, 'name': amenity.name} for amenity in place.amenities
-            ]
+            'owner_id': place.user.id,
+            'amenities': place.amenities
         }, 200
-
-    @api.expect(place_model)
-    @api.response(200, 'Place updated successfully')
-    @api.response(404, 'Place not found')
-    @api.response(400, 'Invalid input data')
-    def put(self, place_id):
-        """Update a place's information"""
-        place_data = api.payload
-        try:
-            updated_place = facade.update_place(place_id, place_data)
-            if not updated_place:
-                return {'error': 'Place not found'}, 404
-            return {
-                'id': updated_place.id,
-                'title': updated_place.title,
-                'description': updated_place.description
-            }, 200
-        except ValueError as e:
-            return {'error': str(e)}, 400
-        except Exception as e:
-            return {'message': 'Internal Server Error'}, 500
