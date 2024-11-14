@@ -2,6 +2,7 @@
 
 from flask_restx import Namespace, Resource, fields
 from app.services.facade import facade
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 api = Namespace('places', description='Place operations')
 
@@ -15,6 +16,7 @@ place_model = api.model('Place', {
     'owner_id': fields.String(required=True, description='ID of the owner'),
     'amenities': fields.List(fields.String, required=True, description="List of amenities")
 })
+
 
 @api.route('/')
 class PlaceList(Resource):
@@ -63,3 +65,23 @@ class PlaceResource(Resource):
             'owner_id': place.user.id,
             'amenities': place.amenities
         }, 200
+
+
+@api.route('/')
+class PlaceList(Resource):
+
+    @jwt_required()
+    def post(self):
+        current_user = get_jwt_identity()
+        # Logique pour créer un nouveau lieu pour l'utilisateur connecté
+        pass
+@api.route('/<place_id>')
+class PlaceResource(Resource):
+    @jwt_required()
+    def put(self, place_id):
+        current_user = get_jwt_identity()
+        place = facade.get_place(place_id)
+        if place.owner_id != current_user:
+            return {'error': 'Action non autorisée'}, 403
+        # Logique pour mettre à jour le lieu
+        pass
