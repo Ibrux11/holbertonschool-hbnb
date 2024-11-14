@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 import uuid
 from datetime import datetime
+from extensions import bcrypt
 
 class User:
-    def __init__(self, first_name: str, last_name: str, email: str, is_admin: bool = False):
+    def __init__(self, first_name: str, last_name: str, email: str, password: str, is_admin: bool = False):
         self.id = str(uuid.uuid4())  # Generate a unique identifier
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
+        self.password = password
         self.is_admin = is_admin
         self.created_at = datetime.now()  # Timestamp for creation
         self.updated_at = datetime.now()  # Timestamp for updates
@@ -25,3 +27,13 @@ class User:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.updated_at = datetime.now()  # Update timestamp whenever the user object is modified
+
+    @staticmethod
+    def hash_password(password):
+        """Hashes the password before storing it."""
+        return bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def verify_password(self, password):
+        """Verifies if the provided password matches the hashed password."""
+        return 'bcrypt'.check_password_hash(self.password, password)
+    
