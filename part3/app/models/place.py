@@ -1,32 +1,18 @@
 #!/usr/bin/python3
+from extensions import db
+from sqlalchemy.orm import relationship
+from .baseclass import BaseModel
 
-import uuid
-from datetime import datetime
-from app.models.user import User
+class Place(BaseModel):
+    __tablename__ = 'places'
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500), nullable=True)
+    price = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
 
-class Place:
-    def __init__(self, title, price, latitude, longitude, user, amenities, description=""):
-        self.id = str(uuid.uuid4())  # ID unique
-        self.title = title
-        self.description = description
-        self.price = price
-        self.latitude = latitude
-        self.longitude = longitude
-        self.user = user
-        self.amenities = amenities
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
-        self.validate()
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
 
-    def validate(self):
-        if not 0 <= self.price:
-            raise ValueError("Price must be a positive number.")
-        if not -90 <= self.latitude <= 90:
-            raise ValueError("Latitude must be between -90 and 90.")
-        if not -180 <= self.longitude <= 180:
-            raise ValueError("Longitude must be between -180 and 180.")
-
-    def update(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.updated_at = datetime.now()
+    user = db.relationship('User', back_populates='places')
+    reviews = db.relationship('Review', back_populates='place')
+    amenities = db.relationship('Amenity', secondary='place_amenities', back_populates='places')

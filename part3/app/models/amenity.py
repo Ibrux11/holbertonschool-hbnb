@@ -1,22 +1,19 @@
 #!/usr/bin/python3
-import uuid
-from datetime import datetime
+from extensions import db
 
-class Amenity:
-    def __init__(self, name: str):
-        self.id = str(uuid.uuid4())  # Generate a unique identifier
-        self.name = name
-        self.created_at = datetime.now()  # Timestamp for creation
-        self.updated_at = datetime.now()  # Timestamp for updates
+place_amenities = db.Table('place_amenities',
+    db.Column('place_id', db.Integer, db.ForeignKey('places.id'), primary_key=True),
+    db.Column('amenity_id', db.Integer, db.ForeignKey('amenities.id'), primary_key=True),
+    extend_existing=True  # Only if you need to redefine it
+)
 
-        # Validation
-        self.validate()
+class Amenity(db.Model):
+    __tablename__ = 'amenities'
 
-    def validate(self):
-        if len(self.name) > 50:
-            raise ValueError("Amenity name must not exceed 50 characters.")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
 
-    def update(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.updated_at = datetime.now()  # Update timestamp
+    places = db.relationship('Place', secondary=place_amenities, back_populates='amenities')
+
+# models/place.py
+from extensions import db

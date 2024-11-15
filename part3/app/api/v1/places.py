@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-
 from flask_restx import Namespace, Resource, fields
-from app.services.facade import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.services.facade import facade
+from flask import request
 
 api = Namespace('places', description='Place operations')
 
-# Modèles pour les entités associées
+# Model for the Place entity, including token in the request body
 place_model = api.model('Place', {
     'title': fields.String(required=True, description='Title of the place'),
     'description': fields.String(description='Description of the place'),
@@ -14,30 +14,45 @@ place_model = api.model('Place', {
     'latitude': fields.Float(required=True, description='Latitude of the place'),
     'longitude': fields.Float(required=True, description='Longitude of the place'),
     'owner_id': fields.String(required=True, description='ID of the owner'),
-    'amenities': fields.List(fields.String, required=True, description="List of amenities")
+    'amenities': fields.List(fields.String, required=True, description="List of amenities"),
+    'token': fields.String(required=True, description="JWT Token for authorization")
 })
-
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()  # JWT authorization check
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
-        """Register a new place"""
+        """Register a new place with authorization token"""
         place_data = api.payload
+        token = place_data.get('token')  # Get the token from the payload (if included)
+
+        # Validate if the token matches the expected one from request header
+        current_user = get_jwt_identity()  # Get the current user from the JWT token
+        
+        # Ensure the token from the payload is the same as the current user
+        if token != current_user:
+            return {'error': 'Unauthorized to create place for another user'}, 403
+
         try:
-            # Création d'une nouvelle place
+            # Now pass the place data for creation
             new_place = facade.create_place(place_data)
             return {
                 'id': new_place.id,
                 'title': new_place.title,
-                'description': new_place.description
+                'description': new_place.description,
+                'price': new_place.price,
+                'latitude': new_place.latitude,
+                'longitude': new_place.longitude,
+                'owner_id': new_place.user.id,
+                'amenities': new_place.amenities
             }, 201
         except ValueError as e:
             return {'error': str(e)}, 400
         except Exception as e:
-            print(f"Erreur serveur : {e}")  # Pour le débogage
+            print(f"Error: {e}")  # For debugging purposes
             return {'message': 'Internal Server Error'}, 500
 
     @api.response(200, 'List of places retrieved successfully')
@@ -45,7 +60,6 @@ class PlaceList(Resource):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
         return [{'id': place.id, 'title': place.title} for place in places], 200
-
 
 @api.route('/<place_id>')
 class PlaceResource(Resource):
@@ -66,22 +80,16 @@ class PlaceResource(Resource):
             'amenities': place.amenities
         }, 200
 
-
-@api.route('/')
-class PlaceList(Resource):
-
     @jwt_required()
-    def post(self):
-        current_user = get_jwt_identity()
-        # Logique pour créer un nouveau lieu pour l'utilisateur connecté
-        pass
-@api.route('/<place_id>')
-class PlaceResource(Resource):
-    @jwt_required()
+    @api.response(200, 'Place updated successfully')
+    @api.response(403, 'Unauthorized action')
+    @api.response(404, 'Place not found')
     def put(self, place_id):
+        """Update place details"""
         current_user = get_jwt_identity()
         place = facade.get_place(place_id)
-        if place.owner_id != current_user:
-            return {'error': 'Action non autorisée'}, 403
-        # Logique pour mettre à jour le lieu
-        pass
+        if not place:
+            return {'error': 'Place not found'}, 404
+        if place.user.id != current_user:
+            return {'error': 'Unauthorized action'}, 403
+        return {'message': 'Place updated successfully'}, 200
