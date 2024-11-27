@@ -23,7 +23,6 @@ class ReviewList(Resource):
     def post(self):
         """Register a new review"""
         review_data = api.payload
-        # Create review via facade and handle validation errors
         try:
             review = facade.create_review(review_data)
             return {"message": "Review successfully created", "review_id": review.id}, 201
@@ -37,7 +36,6 @@ class ReviewList(Resource):
         return [self.serialize_review(review) for review in reviews], 200
 
     def serialize_review(self, review):
-        """Helper method to serialize a review object for JSON response"""
         return {
             "id": review.id,
             "title": review.title,

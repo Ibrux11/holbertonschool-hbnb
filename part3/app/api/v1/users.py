@@ -39,7 +39,6 @@ class UserList(Resource):
         users = facade.user_repo.get_all()
         return [{'id': u.id, 'first_name': u.first_name, 'last_name': u.last_name, 'email': u.email} for u in users], 200
 
-
 @api.route('/<user_id>')
 class UserResource(Resource):
     @api.response(200, 'User details retrieved successfully')

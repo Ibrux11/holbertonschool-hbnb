@@ -2,7 +2,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import facade
-from flask import request
 
 api = Namespace('places', description='Place operations')
 
@@ -28,16 +27,10 @@ class PlaceList(Resource):
         """Register a new place with authorization token"""
         place_data = api.payload
         token = place_data.get('token')  # Get the token from the payload (if included)
-
-        # Validate if the token matches the expected one from request header
         current_user = get_jwt_identity()  # Get the current user from the JWT token
-        
-        # Ensure the token from the payload is the same as the current user
         if token != current_user:
             return {'error': 'Unauthorized to create place for another user'}, 403
-
         try:
-            # Now pass the place data for creation
             new_place = facade.create_place(place_data)
             return {
                 'id': new_place.id,

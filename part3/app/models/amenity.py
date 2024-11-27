@@ -14,6 +14,3 @@ class Amenity(db.Model):
     name = db.Column(db.String(128), nullable=False)
 
     places = db.relationship('Place', secondary=place_amenities, back_populates='amenities')
-
-# models/place.py
-from extensions import db

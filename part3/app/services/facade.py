@@ -16,7 +16,6 @@ class HBnBFacade:
 
     def __init__(self):
         if not hasattr(self, 'initialized'):  # Check if already initialized
-            # Use SQLAlchemyRepository instead of InMemoryRepository
             self.user_repo = SQLAlchemyRepository(User)
             self.amenity_repo = SQLAlchemyRepository(Amenity)
             self.place_repo = SQLAlchemyRepository(Place)
@@ -67,8 +66,6 @@ class HBnBFacade:
         user = self.get_user(place_data['owner_id'])
         if not user:
             raise ValueError("Invalid owner_id; user does not exist.")
-
-        # Create the Place object
         place = Place(
             title=place_data['title'],
             description=place_data.get('description', ''),
@@ -78,8 +75,6 @@ class HBnBFacade:
             user=user,
             amenities=place_data.get('amenities', [])
         )
-
-        # Add the place to the repository
         self.place_repo.add(place)
         return place
 
@@ -106,8 +101,6 @@ class HBnBFacade:
             raise ValueError("Invalid user ID")
         if not place:
             raise ValueError("Invalid place ID")
-
-        # Create the Review object
         review = Review(
             title=review_data.get('title', ""),
             text=review_data['text'],
@@ -115,8 +108,6 @@ class HBnBFacade:
             place_id=place_id,
             user_id=user_id
         )
-
-        # Add the review to the repository
         self.review_repo.add(review)
         return review
     
@@ -146,5 +137,4 @@ class HBnBFacade:
         self.review_repo.delete(review_id)  # Delete the review from the repository
         return True
 
-# Create a single global instance of the HBnBFacade
 facade = HBnBFacade()

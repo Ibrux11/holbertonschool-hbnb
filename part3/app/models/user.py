@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-import uuid
-from datetime import datetime
 from extensions import bcrypt, db
 from .baseclass import BaseModel
 

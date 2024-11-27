@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from extensions import db  # Assuming you have set up SQLAlchemy in your Flask app
+from extensions import db
 from abc import ABC, abstractmethod
 
 class Repository(ABC):
